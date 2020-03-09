@@ -1,6 +1,7 @@
 package com.saraencci.aad.notez;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.databinding.DataBindingUtil;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.widget.Toast;
 
 import com.saraencci.aad.notez.data.DatabaseClient;
 import com.saraencci.aad.notez.data.Note;
+import com.saraencci.aad.notez.databinding.ActivityMainBinding;
 
 import java.util.List;
 
@@ -18,7 +20,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        //adding data binding
+        ActivityMainBinding myBinding;
+        myBinding= DataBindingUtil.setContentView(this,R.layout.activity_main);
+        //setContentView(R.layout.activity_main);
+
         getNotes();
     }
 
