@@ -41,6 +41,9 @@ public class Note {
     public void setTittle(String tittle) {
         this.tittle = tittle;
     }
+    public String setTittle() {
+        return tittle;
+    }
 
     public String getContent() {
         return content;

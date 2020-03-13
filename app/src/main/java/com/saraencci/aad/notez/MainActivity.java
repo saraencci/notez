@@ -2,6 +2,7 @@ package com.saraencci.aad.notez;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.widget.Toast;
 import com.saraencci.aad.notez.data.DatabaseClient;
 import com.saraencci.aad.notez.data.Note;
 import com.saraencci.aad.notez.databinding.ActivityMainBinding;
+import com.saraencci.aad.notez.fragments.NoteFragment;
 
 import java.util.List;
 
@@ -23,7 +25,12 @@ public class MainActivity extends AppCompatActivity {
         //adding data binding
         ActivityMainBinding myBinding;
         myBinding= DataBindingUtil.setContentView(this,R.layout.activity_main);
-        //setContentView(R.layout.activity_main);
+       // setContentView(R.layout.activity_main);
+      Note note2=new Note();
+      note2.setTittle("hey there");
+        myBinding.setNote(note2);
+
+        init();
 
         getNotes();
     }
@@ -31,7 +38,12 @@ public class MainActivity extends AppCompatActivity {
 public void run(View view){
         saveNote();
 }
+void init(){
+    NoteFragment frag=new NoteFragment();
+    FragmentTransaction transaction= getSupportFragmentManager().beginTransaction();
+    transaction.replace(R.id.fragment,frag);
 
+}
 
 
 
@@ -120,8 +132,8 @@ public void run(View view){
                 super.onPostExecute(notes);
 //                TasksAdapter adapter = new TasksAdapter(MainActivity.this, tasks);
 //                recyclerView.setAdapter(adapter);
-                TextView tv=findViewById(R.id.textView);
-                tv.setText(notes.size()+"thos is the new size\n\n\n"+notes.get(notes.size()-1).getContent());
+//                TextView tv=findViewById(R.id.textView);
+//                tv.setText(notes.size()+"thos is the new size\n\n\n"+notes.get(notes.size()-1).getContent());
             }
         }
 
