@@ -2,10 +2,16 @@ package com.saraencci.aad.notez;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -14,10 +20,12 @@ import com.saraencci.aad.notez.data.DatabaseClient;
 import com.saraencci.aad.notez.data.Note;
 import com.saraencci.aad.notez.databinding.ActivityMainBinding;
 import com.saraencci.aad.notez.fragments.NoteFragment;
+import com.saraencci.aad.notez.fragments.SingleNoteFragment;
 
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    SharedPreferences sp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,13 +34,28 @@ public class MainActivity extends AppCompatActivity {
         ActivityMainBinding myBinding;
         myBinding= DataBindingUtil.setContentView(this,R.layout.activity_main);
        // setContentView(R.layout.activity_main);
-      Note note2=new Note();
-      note2.setTittle("hey there");
-        myBinding.setNote(note2);
+
+        myBinding.floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                newnoteFragment();
+            }
+        });
 
         init();
 
+        sp = getSharedPreferences("myPref",MODE_PRIVATE);
+        if(sp.getString("run","null").equals("null")){
+            firstRun();
+        }
+        else
         getNotes();
+    }
+    private void firstRun(){
+        sp.edit().putString("run","did a run");
+        saveNote();
+        getNotes();
+
     }
 
 public void run(View view){
@@ -75,23 +98,34 @@ void init(){
 
             @Override
             protected Void doInBackground(Void... voids) {
+                int no=5;
+                for(int i=2;i<no;i++){
+                    String data=" my data ma data hshhdhd fhfhfhhf fhffhfhhf  the data ";
+                    String data2="";
 
-                //creating a task
-                Note note = new Note();
-                note.setContent("tis is test content rtrtrt");
-                note.setTittle("test tittle");
-                note.setTime("00:04");
-                note.setBgColor("red");
-                note.setCreated("today JJ");
-//                task.setTask(sTask);
-//                task.setDesc(sDesc);
-//                task.setFinishBy(sFinishBy);
-//                task.setFinished(false);
+                    for (int k=0;k<i;k++){
+                        data2+=data;
 
-                //adding to database
-                DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
-                        .noteDao()
-                        .insert(note);
+                    }
+                    String [] colors={"#462fd4","#85dfa5","#dd0f68","#35a21c"};
+                    int m=i%4;
+                    //creating a note
+                    Note note = new Note();
+                    note.setContent(data2);
+                    note.setTittle("   "+ i+" test tittle");
+                    note.setTime("00:04");
+                    note.setBgColor(colors[m]);
+                    note.setCreated("today JJ");
+
+                    //adding to database
+                    DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
+                            .noteDao()
+                            .insert(note);
+
+
+                }
+
+
                 return null;
             }
 
@@ -140,5 +174,43 @@ void init(){
         GetNotes gn = new GetNotes();
         gn.execute();
     }
+
+
+
+    public class BindingCallbacks {
+        Context context;
+
+        public BindingCallbacks(Context context) {
+            this.context = context;
+        }
+
+        public void addButtonClicked(View view ) {
+           // Toast.makeText(this, "FAB clicked!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "fab clicked", Toast.LENGTH_SHORT).show();
+            Log.d("Daattat", "addButtonClicked: ");
+        }
+
+    }
+
+    public  void newnoteFragment(){
+        Fragment fragment=new SingleNoteFragment();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction=  fragmentManager.beginTransaction();
+        transaction.replace(R.id.fragment, fragment).addToBackStack(null);
+        Log.d("Daattat", "addButtonClicked: ");
+        transaction.commit();
+
+
+    }
+
+    public class MyClickHandlers {
+
+        public void onFabClicked(View view) {
+            Toast.makeText(getApplicationContext(), "FAB clicked!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+
 
 }

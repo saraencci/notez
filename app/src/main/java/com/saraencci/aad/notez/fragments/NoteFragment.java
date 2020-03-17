@@ -5,11 +5,14 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.saraencci.aad.notez.R;
 import com.saraencci.aad.notez.data.DatabaseClient;
@@ -38,19 +41,12 @@ public class NoteFragment extends Fragment {
                              Bundle savedInstanceState) {
         // bind the layout for this fragment
         myBinding =FragmentNoteBinding.inflate(inflater);
-        myBinding.noteRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        myBinding.noteRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2,StaggeredGridLayoutManager.VERTICAL));
       // myBinding.noteRecyclerView.hasFixedSize(true);
         getNotes();
-
-
 return  myBinding.getRoot();
        // return inflater.inflate(R.layout.fragment_note, container, false);
     }
-
-
-
-
-
     private void getNotes() {
         class GetNotes extends AsyncTask<Void, Void, List<Note>> {
 
@@ -67,17 +63,18 @@ return  myBinding.getRoot();
             @Override
             protected void onPostExecute(List<Note> notes) {
                 super.onPostExecute(notes);
-//                TasksAdapter adapter = new TasksAdapter(MainActivity.this, tasks);
-//                recyclerView.setAdapter(adapter);
-//                TextView tv=findViewById(R.id.textView);
-//                tv.setText(notes.size()+"thos is the new size\n\n\n"+notes.get(notes.size()-1).getContent());
                 adapter=new RecyclerViewAdapter(getContext(),notes);
                 myBinding.noteRecyclerView.setAdapter(adapter);
             }
         }
-
         GetNotes gn = new GetNotes();
         gn.execute();
     }
 
+    public class MyClickHandlers {
+
+        public void onFabClicked(View view) {
+            Toast.makeText(getContext(), "FAB clicked!", Toast.LENGTH_SHORT).show();
+        }
+    }
 }
