@@ -20,4 +20,6 @@ public interface NoteDao {
 
     @Update
     void update(Note note);
+    @Query("DELETE FROM note")
+    void  delete();
 }

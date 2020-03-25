@@ -1,6 +1,8 @@
 package com.saraencci.aad.notez.fragments;
 
 
+import android.content.Context;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
@@ -31,107 +33,98 @@ public class SingleNoteFragment extends Fragment {
         // Required empty public constructor
     }
    FragmentSingleNoteBinding binding;
+    int transactionCode=1,noteId;
+    private String bacgroundColor="#A5B6E4";
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         // Inflate the layout for this fragment
-        //return inflater.inflate(R.layout.fragment_single_note, container, false);
 binding=FragmentSingleNoteBinding.inflate(inflater);
+
+
+        Bundle bundle = this.getArguments();
+        //checking if bundle was sent
+        if (bundle != null) {
+         //   setting transaction for updating
+            transactionCode=2;
+            //retreaving sent note data
+            bacgroundColor=bundle.getString("color","#A5B6E4");
+            binding.homeNote.setBackgroundColor(Color.parseColor(bacgroundColor));
+            binding.textInputEditTextNoteTittle.setText(bundle.getString("tittle",""));
+            binding.textInputEditTextNote.setText(bundle.getString("content",""));
+            noteId=bundle.getInt("id",23);
+
+        }
+
 binding.buttonSave.setOnClickListener(new View.OnClickListener() {
     @Override
     public void onClick(View v) {
-        saveNote();
+        if(transactionCode==1){
+            //save new note
+            saveNote();
+        }
+        else if(transactionCode==2){
+            //update existing note
+            updateNote();
+        }
+
     }
 });
+
 return binding.getRoot();
     }
 
-    public void runn(View view){
-        saveNote();
+    private void updateNote() {
+        String noteTittle=binding.textInputEditTextNoteTittle.getText().toString().trim();
+        String noteContent=binding.textInputEditTextNote.getText().toString().trim();
+        String date = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
+        String time=new SimpleDateFormat("H:m", Locale.getDefault()).format(new Date());
+        //creating a new note
+        Note note = new Note();
+        note.setContent(noteContent);
+        note.setTittle(noteTittle);
+        note.setTime(time);
+        note.setId(noteId);
+        note.setBgColor(bacgroundColor);
+        note.setCreated(date);
+        class  UpdateNote extends AsyncTask<Void,Void,Void>{
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                DatabaseClient.getInstance(getContext()).getAppDatabase()
+                        .noteDao().update(note);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                Toast.makeText(getActivity().getApplicationContext(), "note updated successfully", Toast.LENGTH_SHORT).show();
+            }
+        }
+        UpdateNote un=new UpdateNote();
+        un.execute();
     }
-
-//    public void saveNote2() {
-////        final String sTask = editTextTask.getText().toString().trim();
-////        final String sDesc = editTextDesc.getText().toString().trim();
-////        final String sFinishBy = editTextFinishBy.getText().toString().trim();
-////
-////        if (sTask.isEmpty()) {
-////            editTextTask.setError("Task required");
-////            editTextTask.requestFocus();
-////            return;
-////        }
-////
-////        if (sDesc.isEmpty()) {
-////            editTextDesc.setError("Desc required");
-////            editTextDesc.requestFocus();
-////            return;
-////        }
-////
-////        if (sFinishBy.isEmpty()) {
-////            editTextFinishBy.setError("Finish by required");
-////            editTextFinishBy.requestFocus();
-////            return;
-////        }
-//
-//        class Savenote extends AsyncTask<Void, Void, Void> {
-//
-//            @Override
-//            protected Void doInBackground(Void... voids) {
-//
-//                //creating a note
-//                Note note = new Note();
-//                note.setContent("tis is test content rtrtrt laooeoeofh  hfhfhfhf fhfhfhhfhfhf fhfhfhhfhfh fhfhhfhfhfhhfhfhhfhfhfhhfhfhfh fhfhffhhfhfhf fhfhfhfhhfh fhfhfhfhhhhf fhfhfhfhhfhhfhfh fhfhfhhfhfhfhhfhfh hfhfhfhhf fhhfhfhhfhdhhdhdhdh");
-//                note.setTittle("test tittle");
-//                note.setTime("00:04");
-//                note.setBgColor("red");
-//                note.setCreated("today JJ");
-//
-//                //adding to database
-//                DatabaseClient.getInstance(getContext()).getAppDatabase()
-//                        .noteDao()
-//                        .insert(note);
-//                return null;
-//            }
-//
-//            @Override
-//            protected void onPostExecute(Void aVoid) {
-//                super.onPostExecute(aVoid);
-//                // finish();
-//                //  startActivity(new Intent(getApplicationContext(), MainActivity.class));
-//                Toast.makeText(getContext(), "Saved", Toast.LENGTH_LONG).show();
-//            }
-//        }
-//
-//        Savenote st = new Savenote();
-//        st.execute();
-//
-//    }
-
-
-
 
     public void saveNote() {
         String noteTittle=binding.textInputEditTextNoteTittle.getText().toString().trim();
         String noteContent=binding.textInputEditTextNote.getText().toString().trim();
         String date = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
-       // String time= Calendar.getInstance().getTime().toString();
         String time=new SimpleDateFormat("H:m", Locale.getDefault()).format(new Date());
+        //creating the note object
+        Note note = new Note();
+        note.setContent(noteContent);
+        note.setTittle(noteTittle);
+        note.setTime(time);
+        note.setBgColor(bacgroundColor);
+        note.setCreated(date);
 
         class Savenote extends AsyncTask<Void, Void, Void> {
             @Override
             protected Void doInBackground(Void... voids) {
-
-                //creating a note
-                Note note = new Note();
-
-
-                note.setContent(noteContent);
-                note.setTittle(noteTittle);
-                note.setTime(time);
-                note.setBgColor("#3A3333");
-                note.setCreated(date);
-
                 //adding to database
                 DatabaseClient.getInstance(getContext()).getAppDatabase()
                         .noteDao()
@@ -142,9 +135,7 @@ return binding.getRoot();
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
-                // finish();
-                //  startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                Toast.makeText(getContext(), "Saved", Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "Note Saved", Toast.LENGTH_LONG).show();
             }
         }
 
@@ -152,13 +143,4 @@ return binding.getRoot();
         st.execute();
 
     }
-
-
-
-
-
-
-
-
-
 }

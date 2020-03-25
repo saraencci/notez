@@ -22,7 +22,11 @@ import com.saraencci.aad.notez.databinding.ActivityMainBinding;
 import com.saraencci.aad.notez.fragments.NoteFragment;
 import com.saraencci.aad.notez.fragments.SingleNoteFragment;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     SharedPreferences sp;
@@ -33,8 +37,6 @@ public class MainActivity extends AppCompatActivity {
         //adding data binding
         ActivityMainBinding myBinding;
         myBinding= DataBindingUtil.setContentView(this,R.layout.activity_main);
-       // setContentView(R.layout.activity_main);
-
         myBinding.floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -42,118 +44,40 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        init();
-
         sp = getSharedPreferences("myPref",MODE_PRIVATE);
-        if(sp.getString("run","null").equals("null")){
+        //checking if its the first run
+        if(!(sp.getString("run","runn")).equals("did_run")){
             firstRun();
         }
         else
         getNotes();
+
+
     }
     private void firstRun(){
-        sp.edit().putString("run","did a run");
-        saveNote();
-        getNotes();
-
+        sp.edit().putString("run","did_run").commit();
+        Toast.makeText(this, "did", Toast.LENGTH_SHORT).show();
+        addNewDefaultNote();
     }
 
-public void run(View view){
-        saveNote();
-}
-void init(){
+
+    private void addNewDefaultNote() {
+        addNote();
+    }
+
+    void init(){
     NoteFragment frag=new NoteFragment();
     FragmentTransaction transaction= getSupportFragmentManager().beginTransaction();
     transaction.replace(R.id.fragment,frag);
-
+    transaction.addToBackStack(null);
+    transaction.commit();
 }
-
-
-
-
-    private void saveNote() {
-//        final String sTask = editTextTask.getText().toString().trim();
-//        final String sDesc = editTextDesc.getText().toString().trim();
-//        final String sFinishBy = editTextFinishBy.getText().toString().trim();
-//
-//        if (sTask.isEmpty()) {
-//            editTextTask.setError("Task required");
-//            editTextTask.requestFocus();
-//            return;
-//        }
-//
-//        if (sDesc.isEmpty()) {
-//            editTextDesc.setError("Desc required");
-//            editTextDesc.requestFocus();
-//            return;
-//        }
-//
-//        if (sFinishBy.isEmpty()) {
-//            editTextFinishBy.setError("Finish by required");
-//            editTextFinishBy.requestFocus();
-//            return;
-//        }
-
-        class Savenote extends AsyncTask<Void, Void, Void> {
-
-            @Override
-            protected Void doInBackground(Void... voids) {
-                int no=5;
-                for(int i=2;i<no;i++){
-                    String data=" my data ma data hshhdhd fhfhfhhf fhffhfhhf  the data ";
-                    String data2="";
-
-                    for (int k=0;k<i;k++){
-                        data2+=data;
-
-                    }
-                    String [] colors={"#462fd4","#85dfa5","#dd0f68","#35a21c"};
-                    int m=i%4;
-                    //creating a note
-                    Note note = new Note();
-                    note.setContent(data2);
-                    note.setTittle("   "+ i+" test tittle");
-                    note.setTime("00:04");
-                    note.setBgColor(colors[m]);
-                    note.setCreated("today JJ");
-
-                    //adding to database
-                    DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
-                            .noteDao()
-                            .insert(note);
-
-
-                }
-
-
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-               // finish();
-              //  startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                Toast.makeText(getApplicationContext(), "Saved", Toast.LENGTH_LONG).show();
-            }
-        }
-
-        Savenote st = new Savenote();
-        st.execute();
-        getNotes();
-
-    }
-
-
-
-
-
-    private void getNotes() {
+ private void getNotes() {
         class GetNotes extends AsyncTask<Void, Void, List<Note>> {
-
             @Override
             protected List<Note> doInBackground(Void... voids) {
-                List<Note> noteList = DatabaseClient
+                List<Note> noteList=new ArrayList<>();
+                noteList= DatabaseClient
                         .getInstance(getApplicationContext())
                         .getAppDatabase()
                         .noteDao()
@@ -164,50 +88,68 @@ void init(){
             @Override
             protected void onPostExecute(List<Note> notes) {
                 super.onPostExecute(notes);
-//                TasksAdapter adapter = new TasksAdapter(MainActivity.this, tasks);
-//                recyclerView.setAdapter(adapter);
-//                TextView tv=findViewById(R.id.textView);
-//                tv.setText(notes.size()+"thos is the new size\n\n\n"+notes.get(notes.size()-1).getContent());
+                init();
             }
         }
 
         GetNotes gn = new GetNotes();
         gn.execute();
     }
-
-
-
-    public class BindingCallbacks {
-        Context context;
-
-        public BindingCallbacks(Context context) {
-            this.context = context;
-        }
-
-        public void addButtonClicked(View view ) {
-           // Toast.makeText(this, "FAB clicked!", Toast.LENGTH_SHORT).show();
-            Toast.makeText(getApplicationContext(), "fab clicked", Toast.LENGTH_SHORT).show();
-            Log.d("Daattat", "addButtonClicked: ");
-        }
-
-    }
-
     public  void newnoteFragment(){
         Fragment fragment=new SingleNoteFragment();
+
         FragmentManager fragmentManager = getSupportFragmentManager();
+        // Replace fragmentCotainer with your container id
+        Fragment currentFragment = fragmentManager.findFragmentById(R.id.fragment);
+        // Return if the class are the same
+        if(currentFragment.getClass().equals(fragment.getClass()))
+            return;
         FragmentTransaction transaction=  fragmentManager.beginTransaction();
         transaction.replace(R.id.fragment, fragment).addToBackStack(null);
-        Log.d("Daattat", "addButtonClicked: ");
         transaction.commit();
-
-
     }
 
     public class MyClickHandlers {
-
         public void onFabClicked(View view) {
             Toast.makeText(getApplicationContext(), "FAB clicked!", Toast.LENGTH_SHORT).show();
         }
+    }
+
+
+    private void addNote() {
+
+        String date = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
+        String time=new SimpleDateFormat("H:m", Locale.getDefault()).format(new Date());
+        //creating a new note
+        Note note = new Note();
+        note.setContent("your notes will be here");
+        note.setTittle("notes");
+        note.setTime(time);
+        note.setBgColor("#A5B6E4");
+        note.setCreated(date);
+        class  addNote extends AsyncTask<Void,Void,Void>{
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
+                        .noteDao().insert(note);
+                note.setContent("thanks for chooosin us ");
+                note.setTittle("thanks");
+                DatabaseClient.getInstance(getApplicationContext()).getAppDatabase()
+                        .noteDao().insert(note);
+
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                Toast.makeText(getApplicationContext(), "initialized", Toast.LENGTH_SHORT).show();
+                getNotes();
+            }
+        }
+        addNote an=new addNote();
+        an.execute();
     }
 
 
